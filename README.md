@@ -8,6 +8,8 @@ Different urls are handled in different ways. For instance, an image url is wrap
 Urls that are not known how to handle and email addresses are replaced by actual html links.
 
 # Usage
+First, add `smarturlize` to your installed apps.
+
 The easies way to use this app is to simply add the template filter `smart_urlize` to a text in your template.
 Just remember to also use the `safe` filter on the text since `smart_urlize` will add html tags to it.
 ```django
