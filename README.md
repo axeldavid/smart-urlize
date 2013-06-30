@@ -1,7 +1,7 @@
 smart-urlize
 ============
 
-smart-urlize is licensed under MIT license.
+smart-urlize is licensed under [MIT license](LICENSE.md).
 
 The purpose of this django app is to provide an easy way to detect and handle urls in texts.
 Different urls are handled in different ways. For instance, an image url is wrapped in a html img tag and a youtube url is replaced by an embedded youtube player.
@@ -45,4 +45,27 @@ text = 'This is a text containing a reddit link http://www.reddit.com/r/programm
 urlizer = SmartUrlize()
 urlizer.Meta.transformers.insert(0, MakeRedditLinksGreen)
 print urlizer(text)
+```
+
+### Handling non urls
+
+By default, smart-urlize will check each word if it is an url before trying to transform it.
+This is done for performance reasons so the non urls in your text, won't be parsed through all of the transfomers.
+However, you can also create a transformer that works on non urls if you want to.
+This is done by adding the `is_url_handler = False` parameter to your transformer class.
+Let's say you wan't to correct all misspellings of the word 'belive' to 'believe'.
+Than your transformer class would look something like this.
+
+```python
+from smarturlize.transformers import BaseTransformer
+
+class CorrectTypoBelive(BaseTransformer):
+
+    is_url_handler = False
+    
+    def match(self, word):
+        return word.word == 'belive'
+        
+    def transform(self, word):
+        return 'believe'
 ```
