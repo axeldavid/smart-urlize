@@ -54,7 +54,7 @@ This is done for performance reasons so the non urls in your text, won't be pars
 However, you can also create a transformer that works on non urls if you want to.
 This is done by adding the `is_url_handler = False` parameter to your transformer class.
 Let's say you wan't to correct all misspellings of the word 'belive' to 'believe'.
-Than your transformer class would look something like this.
+Then your transformer class would look something like this.
 
 ```python
 from smarturlize.transformers import BaseTransformer
