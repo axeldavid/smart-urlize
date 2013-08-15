@@ -7,18 +7,29 @@ class BaseTransformer(object):
     is_url_handler = True
 
     def match(self, word):
-        # Returns whether the given word should be transformed by this
-        # transformer
-        return False  # Boolean
+        ''' Word matcher
+
+        Args:
+            word (smarturlize.smarturlize.Word)
+        Returns:
+            (bool): Indicates wheather the given word object should be handled
+            by this transformer or not.
+        '''
+        raise NotImplementedError
 
     def transform(self, word):
-        # Transformer to replace a word with something else or wrap it for
-        # instince in a html tag.
-        return word.word  # String
+        ''' Word transformer
+
+        Args:
+            word (smarturlize.smarturlize.Word)
+        Returns:
+            (str) The string you want to replace the given word with.
+        '''
+        raise NotImplementedError
 
 
 class ClickableLinks(BaseTransformer):
-    '''Converts a url to a clickable link '''
+    '''Converts urls to clickable links'''
 
     def match(self, word):
         return True
@@ -28,7 +39,7 @@ class ClickableLinks(BaseTransformer):
 
 
 class DisplayImages(BaseTransformer):
-    '''Wraps urls to images in a img tag'''
+    '''Wraps urls in html img tags'''
 
     def match(self, word):
         image_extensions = ['jpg', 'jpeg', 'png', 'gif']
