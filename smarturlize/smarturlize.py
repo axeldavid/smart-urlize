@@ -1,8 +1,7 @@
 import re
 import urlparse
 
-from .transformers import (ClickableLinks, DisplayImages, EmailLinks,
-                           YoutubeEmbed)
+from .transformers import registry
 
 
 class Word(object):
@@ -22,7 +21,7 @@ class Word(object):
 class SmartUrlize(object):
 
     def get_transformers(self):
-        return [t() for t in self.Meta.transformers]
+        return [t() for t in registry]
 
     def transform_word(self, word):
         for t in self.transformers:
@@ -40,15 +39,3 @@ class SmartUrlize(object):
         self.text = text
         self.transform()
         return ' '.join(self.words)
-
-    class Meta:
-        '''All transfomers that will be used for the text.
-
-        New transformers can be added here. Note that only the first
-        transformer that matches the word will be used. So make sure that if
-        you want your transformer to have a higher priority than e.g.
-        ClickableLinks, it has to be placed before the ClickableLinks
-        transformer in the list.
-        '''
-        transformers = [DisplayImages, YoutubeEmbed, EmailLinks,
-                        ClickableLinks]

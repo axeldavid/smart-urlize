@@ -28,6 +28,47 @@ class BaseTransformer(object):
         raise NotImplementedError
 
 
+class Registry(list):
+
+    def register(self, transformer):
+        '''Register transformer
+
+        Attrs:
+            transformer (BaseTransformer): Any subclass of BaseTransformer
+        Raises:
+            ValueError if transformer is already registered
+            AssertionError if transformer is not a subclass of BaseTransformer
+        '''
+
+        assert (isinstance(transformer, BaseTransformer),
+                '%s is not a subclass of BaseTransformer' % transformer)
+
+        if transformer.__name__ in (t.__name__ for t in self):
+            raise ValueError('Transformer %s is already registered.'
+                             % transformer.__name__)
+        self.insert(0, transformer)
+
+    def unregister(self, transformer_name):
+        '''Unregister transformer
+
+        Attrs:
+            transformer (str): Classname of a transformer
+        Raises:
+            ValueError if no transformer with the provided classname exists.
+        '''
+
+        for t in self:
+            if t.__name__ == transformer_name:
+                self.remove(t)
+                return
+        raise ValueError('Transformer %s is not registered' % transformer_name)
+
+
+registry = Registry()
+transformer = registry.register
+
+
+@transformer
 class ClickableLinks(BaseTransformer):
     '''Converts urls to clickable links'''
 
@@ -35,9 +76,10 @@ class ClickableLinks(BaseTransformer):
         return True
 
     def transform(self, word):
-        return '<a href="%s">%s</a>' % (word.word, word.url.query)
+        return '<a href="%s">%s</a>' % (word.word, word.word)
 
 
+@transformer
 class DisplayImages(BaseTransformer):
     '''Wraps urls in html img tags'''
 
@@ -52,6 +94,7 @@ class DisplayImages(BaseTransformer):
         return '<img src="%s" />' % word.word
 
 
+@transformer
 class EmailLinks(BaseTransformer):
     '''Makes email addresses clickable'''
 
@@ -64,6 +107,7 @@ class EmailLinks(BaseTransformer):
         return '<a href="mailto:%s">%s</a>' % (word.word, word.word)
 
 
+@transformer
 class YoutubeEmbed(BaseTransformer):
     '''Converts youtube links to embedded youtube frames'''
 
