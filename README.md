@@ -11,54 +11,59 @@ Urls that are not known how to handle and email addresses are replaced by actual
 First, add `smarturlize` to your installed apps.
 
 The easies way to use this app is to simply add the template filter `smart_urlize` to a text in your template.
-Just remember to also use the `safe` filter on the text since `smart_urlize` will add html tags to it.
 ```django
 {% load smart_urlize %}
 
-{{ text|smart_urlize|safe }}
+{{ text|smart_urlize }}
 
 ```
-And of course, always make sure that all content that comes from user input is [escaped](https://docs.djangoproject.com/en/dev/ref/templates/builtins/#std:templatefilter-escape) before displaying it on your website.
+Just be aware that the `smart_urlize` template filter marks the text as safe.
+It is therefore important to make sure that your text is
+[escaped](https://docs.djangoproject.com/en/dev/ref/templates/builtins/#std:templatefilter-escape)
+if it comes from user input to prevent XSS attacks.
 
 # Write your own url handlers
-Adding your own url transformers is very easy.
-You can create a custom transformer class which should be a subclass of `transformers.BaseTransformer` where you override two methods, `match` and `transform`.
-These methods take a parameter `word` which is not a string but an instance of the class `smarturlize.Word`.
-The `match` method should return a boolean value, whether the word should be handled by this transformer or not.
-The `transform` method should return a string that represents the transformed value.
-Finally, add the new transformer to `smarturlize.SmartUrlize.Meta.transformers`.
+Adding your own url transformers is very easy.  
+You do that by writing a custom transformer class which should be a subclass of
+[`transformers.BaseTransformer`](smarturlize/transformers.py#L5-L28).  
+You can then register your transformer with the `@transformer` decorator.
 
 ```python
-from smarturlize.transformers import BaseTransformer
-from smarturlize import SmartUrlize
+from smarturlize.transformers import BaseTransformer, transformer
 
+
+@transformer
 class MakeRedditLinksGreen(BaseTransformer):
 
     def match(self, word):
-        return word.url.netloc.endswith('reddit.com')
+        return word.url.hostname in ('reddit.com', 'www.reddit.com')
 
     def transform(self, word):
-        return '<a style="color: green;" href="%s">%s</a>' % (word.word, word.url.query)
+        return '<a style="color: green;" href="%s">Reddit link</a>' % word.word
+```
 
-
-text = 'This is a text containing a reddit link http://www.reddit.com/r/programming'
-urlizer = SmartUrlize()
-urlizer.Meta.transformers.insert(0, MakeRedditLinksGreen)
-print urlizer(text)
+```python
+>>> from smarturlize import SmartUrlize
+>>> urlizer = SmartUrlize()
+>>> print urlizer('This contains a reddit link http://www.reddit.com/r/programming')
+This contains a reddit link <a style="color: green;" href="http://www.reddit.com/r/programming">Reddit link</a>
 ```
 
 ### Handling non urls
 
 By default, smart-urlize will check each word if it is an url before trying to transform it.
 This is done for performance reasons so the non urls in your text, won't be parsed through all of the transfomers.
+
 However, you can also create a transformer that works on non urls if you want to.
-This is done by adding the `is_url_handler = False` parameter to your transformer class.
+This is done by adding the `is_url_handler = False` property to your transformer class.
 Let's say you wan't to correct all misspellings of the word 'belive' to 'believe'.
-Then your transformer class would look something like this.
+In that case your transformer class would look something like this.
 
 ```python
-from smarturlize.transformers import BaseTransformer
+from smarturlize.transformers import BaseTransformer, transformer
 
+
+@transformer
 class CorrectTypoBelive(BaseTransformer):
 
     is_url_handler = False
@@ -68,4 +73,13 @@ class CorrectTypoBelive(BaseTransformer):
         
     def transform(self, word):
         return 'believe'
+```
+
+### Unregistering url handlers
+
+To unregister an url handler, call `smarturlize.registry.unregister` with the transformer's class name as an argument.
+```python
+from smarturlize import registry
+
+registry.unregister('DisplayImages')
 ```
