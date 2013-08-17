@@ -7,7 +7,7 @@ register = template.Library()
 
 
 @register.filter
-def smart_urlize(text, transformers=''):
+def smarturlize(text, transformers=''):
 
     include = []
     exclude = []
