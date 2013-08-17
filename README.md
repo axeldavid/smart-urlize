@@ -10,23 +10,30 @@ Urls that are not known how to handle and email addresses are replaced by actual
 # Usage
 First, add `smarturlize` to your installed apps.
 
-The easies way to use this app is to simply add the template filter `smart_urlize` to a text in your template.
+The easies way to use this app is to simply add the template filter `smarturlize` to a text in your template.
 ```django
-{% load smart_urlize %}
+{% load smarturlize %}
 
-{{ text|smart_urlize }}
+{{ text|smarturlize }}
 
 ```
-Just be aware that the `smart_urlize` template filter marks the text as safe.
+Just be aware that the `smarturlize` template filter marks the text as safe.
 It is therefore important to make sure that your text is
 [escaped](https://docs.djangoproject.com/en/dev/ref/templates/builtins/#std:templatefilter-escape)
 if it comes from user input to prevent XSS attacks.
 
-# Write your own url handlers
-Adding your own url transformers is very easy.  
-You do that by writing a custom transformer class which should be a subclass of
-[`transformers.BaseTransformer`](smarturlize/transformers.py#L5-L28).  
-You can then register your transformer with the `@transformer` decorator.
+# Url handlers
+The following url handlers are registered by default 
+- **ClickableLinks** replaces all urls in the text, that are not handled by other url handlers, with clickable html links.
+- **DisplayImages** replaces all image urls with html `img` tags.
+- **EmailLinks** replaces all email addresses with clickable email links.
+- **YoutubeEmbed** replaces all youtube urls with an embedded Youtube player.
+
+### Writing your own url handlers
+Adding your own url handler is very easy.  
+You do that by writing a custom transformer class that represents your url handler and should be a subclass of
+[`transformers.BaseTransformer`](smarturlize/transformers.py#L5-L28).
+You can then register your url handler with the `@transformer` decorator.
 
 ```python
 from smarturlize.transformers import BaseTransformer, transformer
@@ -52,7 +59,7 @@ This contains a reddit link <a style="color: green;" href="http://www.reddit.com
 ### Handling non urls
 
 By default, smart-urlize will check each word if it is an url before trying to transform it.
-This is done for performance reasons so the non urls in your text, won't be parsed through all of the transfomers.
+This is done for performance reasons so the non urls in your text, won't be parsed through all of the url handlers.
 
 However, you can also create a transformer that works on non urls if you want to.
 This is done by adding the `is_url_handler = False` property to your transformer class.
@@ -75,8 +82,26 @@ class CorrectTypoBelive(BaseTransformer):
         return 'believe'
 ```
 
-### Unregistering url handlers
+### Including and excluding url handlers
+By including url handlers, I more specifically mean limit transformers.
+It's the same idea as including and excluding form fields in django forms.
 
+Let's say you only want include the ClicableLinks url handler.
+```django
+{% load smarturlize %}
+
+{{ text|smarturlize:'ClicableLinks' }}
+```
+
+Or you want to exclude the other three default url handlers (which should lead to the same results).
+```django
+{% load smarturlize %}
+
+{{ text|smarturlize:'-DisplayImages,EmailLinks,YoutubeEmbed' }}
+```
+In this example you can see that multiple handlers are seperated by comma and a minus prefix `-` is used to exclude fields.
+
+### Unregistering url handlers
 To unregister an url handler, call `smarturlize.registry.unregister` with the transformer's class name as an argument.
 ```python
 from smarturlize import registry
