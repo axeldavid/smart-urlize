@@ -21,7 +21,11 @@ class Word(object):
 class SmartUrlize(object):
 
     def get_transformers(self):
-        return [t() for t in registry]
+        if self.include:
+            # If include is specified then exclude will be ignored
+            transformers = dict((t.__name__, t) for t in registry)
+            return [transformers[n]() for n in self.include]
+        return [t() for t in registry if t.__name__ not in self.exclude]
 
     def transform_word(self, word):
         for t in self.transformers:
@@ -35,7 +39,9 @@ class SmartUrlize(object):
         for i, w in enumerate(self.words):
             self.words[i] = self.transform_word(w)
 
-    def __call__(self, text):
+    def __call__(self, text, exclude=None, include=None):
+        self.exclude = exclude or []
+        self.include = include or []
         self.text = text
         self.transform()
         return ' '.join(self.words)

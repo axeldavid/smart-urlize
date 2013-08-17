@@ -47,6 +47,7 @@ class Registry(list):
             raise ValueError('Transformer %s is already registered.'
                              % transformer.__name__)
         self.insert(0, transformer)
+        return transformer
 
     def unregister(self, transformer_name):
         '''Unregister transformer

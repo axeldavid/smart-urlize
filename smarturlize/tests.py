@@ -91,3 +91,42 @@ class TestSmartUrlize(TestCase):
 
         self.assertNotIn('<img', transformed_text, 'Unwanted img tag in text')
         self.assertNotIn('</a>', transformed_text, 'Unwanted link in text')
+
+    def test_include_exclude_transformers(self):
+        # Don't include or exclude anything
+        self.urlizer('')
+        expected_results = ['YoutubeEmbed', 'EmailLinks', 'DisplayImages',
+                            'ClickableLinks']
+        actual_results = [t.__class__.__name__
+                          for t in self.urlizer.transformers]
+        self.assertListEqual(actual_results, expected_results,
+                             'Not getting expected transformers when calling '
+                             'urlizer with no include/exclude kwargs.')
+
+        # Include YoutubeEmbed and EmailLinks transformers
+        self.urlizer('', include=['YoutubeEmbed', 'EmailLinks'])
+        expected_results = ['YoutubeEmbed', 'EmailLinks']
+        actual_results = [t.__class__.__name__
+                          for t in self.urlizer.transformers]
+        self.assertListEqual(actual_results, expected_results,
+                             'Not getting expected transformers when '
+                             'including YoutubeEmbed and EmailLinks.')
+
+        # Exclude YoutubeEmbed transformer
+        self.urlizer('', exclude=['YoutubeEmbed'])
+        expected_results = ['EmailLinks', 'DisplayImages', 'ClickableLinks']
+        actual_results = [t.__class__.__name__
+                          for t in self.urlizer.transformers]
+        self.assertListEqual(actual_results, expected_results,
+                             'Not getting expected transformers when '
+                             'excluding YoutubeEmbed.')
+
+        # Call urlize again with no transformers included or excluded
+        self.urlizer('')
+        expected_results = ['YoutubeEmbed', 'EmailLinks', 'DisplayImages',
+                            'ClickableLinks']
+        actual_results = [t.__class__.__name__
+                          for t in self.urlizer.transformers]
+        self.assertListEqual(actual_results, expected_results,
+                             'Not getting expected transformers when calling '
+                             'urlizer again with no include/exclude kwarg.')
