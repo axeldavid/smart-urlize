@@ -24,10 +24,10 @@ if it comes from user input to prevent XSS attacks.
 
 # Url handlers
 The following url handlers are registered by default 
-- **ClickableLinks** replaces all urls in the text, that are not handled by other url handlers, with clickable html links.
-- **DisplayImages** replaces all image urls with html `img` tags.
-- **EmailLinks** replaces all email addresses with clickable email links.
-- **YoutubeEmbed** replaces all youtube urls with an embedded Youtube player.
+- *ClickableLinks* replaces all urls in the text, that are not handled by other url handlers, with clickable html links.
+- *DisplayImages* replaces all image urls with html `img` tags.
+- *EmailLinks* replaces all email addresses with clickable email links.
+- *YoutubeEmbed* replaces all youtube urls with an embedded Youtube player.
 
 ### Writing your own url handlers
 Adding your own url handler is very easy.  
@@ -83,23 +83,25 @@ class CorrectTypoBelive(BaseTransformer):
 ```
 
 ### Including and excluding url handlers
-By including url handlers, I more specifically mean limit transformers.
+By the term *including* , I more specifically mean, *limiting*.
 It's the same idea as including and excluding form fields in django forms.
 
-Let's say you only want include the ClicableLinks url handler.
+Let's say you want include the *ClicableLinks* url handler,
+that is call the smarturlize templatefilter with *ClickableLinks* as the only url handler.
 ```django
 {% load smarturlize %}
 
 {{ text|smarturlize:'ClicableLinks' }}
 ```
 
-Or you want to exclude the other three default url handlers (which should lead to the same results).
+Or you want to exclude *YoutubeEmbed* and *DisplayImages*,
+that is call smarturlize with all registered url handlers, except *YoutubeEmbed* and *DisplayImages*.
 ```django
 {% load smarturlize %}
 
-{{ text|smarturlize:'-DisplayImages,EmailLinks,YoutubeEmbed' }}
+{{ text|smarturlize:'-DisplayImages,YoutubeEmbed' }}
 ```
-In this example you can see that multiple handlers are seperated by comma and a minus prefix `-` is used to exclude fields.
+In this example you can see that multiple handlers are seperated by comma and a leading minus `-` is used to exclude fields.
 
 ### Unregistering url handlers
 To unregister an url handler, call `smarturlize.registry.unregister` with the transformer's class name as an argument.
